@@ -14,6 +14,7 @@ env:
       SSH_KEY: /tmp/travis-buildbot.rsa
       REPOSITORY: buster
       PACKAGE_SERVER_IP: 50.211.244.129
+      PKGTOOLS_COMMIT: origin/${TRAVIS_BRANCH}
       UPLOAD: scp
   jobs:
     - ARCHITECTURE: amd64
