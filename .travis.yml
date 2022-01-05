@@ -12,13 +12,12 @@ env:
     - secure: "T6gskKX+Qq950qQgjXjagu483WT1Df79AhavfVeHhVgby/pAjvyZ7kEPmqT4ozgQHk000loZPOVULW+H887cAA/DTMuPzuNVIEvY3JhjTEV/dOPKz/ZpWnqUoqBfdeyV+el26ABvTwIKiZcd3C7s+KIrAXS8Oo/WU8DLo40q/Y1lr4bjBX3hALIkxiOY1L3pqn6RmFfduTGJ4I+yXP1NzftXyDFtkmp+HTB+QUAvKYuJVzE8PevqELRw9dOv6mUFvJwUb1nw4tUaPR0+uWdTqwsSRuTGVsDVHoZ9S4hJ1b0X0t/U+5qsxy7x9y739TcnM1+MNVXCwG9IW2fVb90Wf+EcPaDRWvPwCHl5cwMgIQbpgnbQ/0g031rq1EiezYHvISF0PYwZSBeBZC4gdL/A+GikrulR85gqhV6G92Z+zfyRdbjZ7XGvNaJ3pU6jX2Or5yPVlQ+3t7F3cs3qVPMt5W29nmUImWMJYU8x/F/w/ZJw249tmAhfBoPkLL+nMu4Lnuchw9Ef+MleRWc3wjCgJMInd5KbQRGoMGMWBCmADSDRdbHSPTJHgULm+bcS7Sh42SXbIacv3HQHVVoD2ZmkJOCSoJ5ECBUBxjSjqIXdypWOcFluIThk0MdL9Y68EXrH7lls2rKBNGt+TRkRKYUr2GNIjcbFhXqvUFbKenbtNNc="
     - DOCKER_USERNAME: untangleengineering
       SSH_KEY: /tmp/travis-buildbot.rsa
-      REPOSITORY: buster
       PACKAGE_SERVER_IP: 50.211.244.129
       PKGTOOLS_COMMIT: origin/${TRAVIS_BRANCH}
       UPLOAD: scp
   jobs:
-    - ARCHITECTURE: amd64
-    - ARCHITECTURE: arm64
+    - REPOSITORY: buster
+    - REPOSITORY: bullseye
 
 before_install:
 - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
