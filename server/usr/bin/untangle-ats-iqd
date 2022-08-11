@@ -1,0 +1,11 @@
+#! /usr/bin/python2.7
+
+import sys
+from untangle.ats.iqd import iqd
+
+LOG_FILE = "/var/log/untangle-ats-iqd.log"
+
+sys.stdout = sys.stderr = open(LOG_FILE, 'a+', 0)
+
+iqd.run()
+
