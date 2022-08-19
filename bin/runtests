@@ -84,6 +84,48 @@ class ArgumentParser(object):
     def set_quick_tests_only(self, arg):
         self.quick_tests_only = True
 
+    def get_test_list(self,arg):
+        """
+        Search by suite and test substrings for desired tests.
+
+        Show in the following formats:
+        suite1
+            test1
+            test2
+
+        And as suite/test argument for vscode test:
+        suite1 test1,test2
+        """
+        runtests = get_runtests(self, None)
+        found_suites = []
+        found_tests = []
+        for suite in runtests.test_registry.all_modules():
+            if "all" not in self.suites_to_run and not any(s in suite for s in self.suites_to_run):
+                continue
+            if suite in self.suites_to_exclude:
+                continue
+            if suite not in found_suites:
+                found_suites.append(suite)
+
+            print(suite)
+            test_clz = runtests.test_registry.get_test(suite)
+            if test_clz is None:
+                continue
+            tests = unittest.TestLoader().loadTestsFromTestCase(test_clz)
+            for test in tests:
+                if "all" not in self.tests_to_run and not any(t in test._testMethodName for t in self.tests_to_run):
+                    continue
+                if test._testMethodName in self.tests_to_exclude:
+                    continue
+                if test._testMethodName not in found_tests:
+                    found_tests.append(test._testMethodName)
+                print(f"\t{test._testMethodName}")
+
+        print()
+        print("Suite and tests to run:")
+        print(f"{','.join(found_suites)} {','.join(found_tests)}")
+        sys.exit(1)
+
     def parse_args(self):
         handlers = {
             '-h' : self.set_client_ip,
@@ -102,10 +144,11 @@ class ArgumentParser(object):
             '-d' : self.set_external_intf_id,
             '-s' : self.set_internal_intf_id,
             '-z' : self.set_quick_tests_only,
+            '-g' : self.get_test_list,
         }
 
         try:
-            (optlist, args) = getopt.getopt(sys.argv[1:], 'h:u:i:p:l:d:s:t:T:e:E:vqrc:xz')
+            (optlist, args) = getopt.getopt(sys.argv[1:], 'h:u:i:p:l:d:s:t:T:e:E:vqrc:xzg')
             for opt in optlist:
                 handlers[opt[0]](opt[1])
             return args
@@ -133,6 +176,7 @@ def print_usage():
     -r         : repeat test indefinitely or until repeat count if specified (or until failure if -q is specified)
     -c <count> : repeat test count
     -z         : skip lengthly test suites
+    -g         : get suite and test names
 """ % sys.argv[0])
 
 def signal_handler(sig, frame):
@@ -278,6 +322,38 @@ def load_modules(path):
         print("Loading: " + path + i)
         importlib.import_module("tests."+name)
 
+def get_runtests(parser, logfile):
+    """
+    Build up runtests object with defined parser settings.
+    """
+    if len(parser.paths) == 0:
+        load_modules('./usr/lib/python%d/' % sys.version_info[0])
+        load_modules('./usr/lib/python%d/dist-packages/' % sys.version_info[0])
+        load_modules('/usr/lib/python%d/' % sys.version_info[0])
+        load_modules('/usr/lib/python%d/dist-packages/' % sys.version_info[0])
+    else:
+        for p in parser.paths:
+            load_modules(p)
+            load_modules(p + ('/usr/lib/python%d.%d/' % sys.version_info[:1]))
+            load_modules(p + ('/usr/lib/python%d.%d/dist-packages/' % sys.version_info[:1]))
+
+    runtests = importlib.import_module("runtests")
+
+    if parser.client_ip != None:
+        runtests.remote_control.client_ip = parser.client_ip
+    if parser.host_username != None:
+        runtests.remote_control.host_username = parser.host_username
+    if parser.host_key_file != None:
+        runtests.remote_control.host_key_file = parser.host_key_file
+    runtests.remote_control.verbosity = parser.verbosity
+    if logfile is not None:
+        runtests.remote_control.logfile = logfile
+    runtests.remote_control.interface = int(parser.internal_intf_id)
+    runtests.remote_control.interface_external = int(parser.external_intf_id)
+
+    runtests.quick_tests_only = parser.quick_tests_only
+
+    return runtests
 
 orig_stdout = sys.stdout
 orig_stderr = sys.stderr
@@ -289,31 +365,7 @@ logfile = open(parser.logfile, 'w')
 
 signal.signal(signal.SIGINT, signal_handler)
 
-if len(parser.paths) == 0:
-    load_modules('./usr/lib/python%d/' % sys.version_info[0])
-    load_modules('./usr/lib/python%d/dist-packages/' % sys.version_info[0])
-    load_modules('/usr/lib/python%d/' % sys.version_info[0])
-    load_modules('/usr/lib/python%d/dist-packages/' % sys.version_info[0])
-else:
-    for p in parser.paths:
-        load_modules(p)
-        load_modules(p + ('/usr/lib/python%d.%d/' % sys.version_info[:1]))
-        load_modules(p + ('/usr/lib/python%d.%d/dist-packages/' % sys.version_info[:1]))
-
-runtests = importlib.import_module("runtests")
-
-if parser.client_ip != None:
-    runtests.remote_control.client_ip = parser.client_ip
-if parser.host_username != None:
-    runtests.remote_control.host_username = parser.host_username
-if parser.host_key_file != None:
-    runtests.remote_control.host_key_file = parser.host_key_file
-runtests.remote_control.verbosity = parser.verbosity
-runtests.remote_control.logfile = logfile
-runtests.remote_control.interface = int(parser.internal_intf_id)
-runtests.remote_control.interface_external = int(parser.external_intf_id)
-
-runtests.quick_tests_only = parser.quick_tests_only
+runtests = get_runtests(parser, logfile)
 
 if ("environment" in parser.suites_to_run or "all" in parser.suites_to_run) and "environment" not in parser.suites_to_exclude:
     run_environment_tests()
