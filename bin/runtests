@@ -248,9 +248,11 @@ def run_test_suite(suite):
         print("\n\n")
         print("="*70)
         print(test_name + " start [" + time.strftime("%Y-%m-%dT%H:%M:%S") + "]")
+        sys.stdout.flush()
         results = unittest.TextTestRunner(stream=logfile, verbosity=parser.verbosity).run(test)
         print(test_name + " end   [" + time.strftime("%Y-%m-%dT%H:%M:%S") + "]")
         print("="*70)
+        sys.stdout.flush()
 
         test_elapsed_time = time.time() - test_start_time
         time_string = "[%.1fs]" % test_elapsed_time
