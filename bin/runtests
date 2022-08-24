@@ -99,30 +99,57 @@ class ArgumentParser(object):
         runtests = get_runtests(self, None)
         found_suites = []
         found_tests = []
+
+        # Special condition if all suites selected but specific tests.
+        # If true, only include suite if matching test found
+        if "all" in self.suites_to_run and "all" not in self.tests_to_run:
+            suite_test_match = True
+        else:
+            suite_test_match = False
+
         for suite in runtests.test_registry.all_modules():
+            suite_printed = False
             if "all" not in self.suites_to_run and not any(s in suite for s in self.suites_to_run):
                 continue
             if suite in self.suites_to_exclude:
                 continue
-            if suite not in found_suites:
+
+            if suite not in found_suites and suite_test_match is False:
+                print(suite)
                 found_suites.append(suite)
 
-            print(suite)
             test_clz = runtests.test_registry.get_test(suite)
             if test_clz is None:
                 continue
             tests = unittest.TestLoader().loadTestsFromTestCase(test_clz)
+            if "all" in self.tests_to_run:
+                continue
             for test in tests:
                 if "all" not in self.tests_to_run and not any(t in test._testMethodName for t in self.tests_to_run):
                     continue
                 if test._testMethodName in self.tests_to_exclude:
                     continue
+
+                if suite not in found_suites and suite_test_match is True and suite_printed is False:
+                    # Special case of all suites but only specific tests.
+                    # Only include suite if we have at least one test
+                    print(suite)
+                    found_suites.append(suite)
+                    suite_printed = True
+
                 if test._testMethodName not in found_tests:
                     found_tests.append(test._testMethodName)
                 print(f"\t{test._testMethodName}")
 
         print()
         print("Suite and tests to run:")
+        print("From runtests:")
+        if len(found_tests):
+            print(f"-t {','.join(found_suites)} -T {','.join(found_tests)}")
+        else:
+            print(f"-t {','.join(found_suites)}")
+        print()
+        print("From VSC:")
         print(f"{','.join(found_suites)} {','.join(found_tests)}")
         sys.exit(1)
 
