@@ -143,14 +143,11 @@ class ArgumentParser(object):
 
         print()
         print("Suite and tests to run:")
-        print("From runtests:")
+        print("Arguments:")
         if len(found_tests):
             print(f"-t {','.join(found_suites)} -T {','.join(found_tests)}")
         else:
             print(f"-t {','.join(found_suites)}")
-        print()
-        print("From VSC:")
-        print(f"{','.join(found_suites)} {','.join(found_tests)}")
         sys.exit(1)
 
     def parse_args(self):
