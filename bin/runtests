@@ -146,6 +146,9 @@ class ArgumentParser(object):
         print("Arguments:")
         if len(found_tests):
             print(f"-t {','.join(found_suites)} -T {','.join(found_tests)}")
+            print()
+            print("suites only")
+            print(f"-t {','.join(found_suites)}")
         else:
             print(f"-t {','.join(found_suites)}")
         sys.exit(1)
