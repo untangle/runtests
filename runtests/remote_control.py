@@ -69,6 +69,7 @@ def run_command(command, host=None, stdout=False, nowait=False):
 
         result = proc.wait()
         output = proc.communicate()[0].strip().decode("utf-8")
+        sys.stdout.reconfigure(encoding='utf-8')
         print("Result  : %i"  % result)
         print("Output  : %s"  % output)
         sys.stdout.flush()
