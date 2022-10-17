@@ -34,6 +34,7 @@ class ArgumentParser(object):
         self.tests_to_run = ['all']
         self.tests_to_exclude = []
         self.quick_tests_only = False
+        self.overrides = {}
 
     def set_client_ip(self, arg):
         self.client_ip = arg
@@ -153,6 +154,11 @@ class ArgumentParser(object):
             print(f"-t {','.join(found_suites)}")
         sys.exit(1)
 
+    def set_override(self, arg):
+        # self.overrides.append(arg)
+        (key,value) = arg.split("=", 2)
+        self.overrides[key] = eval(value)
+
     def parse_args(self):
         handlers = {
             '-h' : self.set_client_ip,
@@ -172,10 +178,11 @@ class ArgumentParser(object):
             '-s' : self.set_internal_intf_id,
             '-z' : self.set_quick_tests_only,
             '-g' : self.get_test_list,
+            '-o' : self.set_override,
         }
 
         try:
-            (optlist, args) = getopt.getopt(sys.argv[1:], 'h:u:i:p:l:d:s:t:T:e:E:vqrc:xzg')
+            (optlist, args) = getopt.getopt(sys.argv[1:], 'h:u:i:p:l:d:s:t:T:e:E:vqrc:xzgo:')
             for opt in optlist:
                 handlers[opt[0]](opt[1])
             return args
@@ -204,6 +211,7 @@ def print_usage():
     -c <count> : repeat test count
     -z         : skip lengthly test suites
     -g         : get suite and test names
+    -o key=val : Override variable.
 """ % sys.argv[0])
 
 def signal_handler(sig, frame):
@@ -381,6 +389,7 @@ def get_runtests(parser, logfile):
     runtests.remote_control.interface_external = int(parser.external_intf_id)
 
     runtests.quick_tests_only = parser.quick_tests_only
+    runtests.overrides.overrides = parser.overrides
 
     return runtests
 
