@@ -1,11 +1,15 @@
 """
-Overrides that modules can import
+Provide a key/value means of speciying values.
+
+Other modules must use override.get("key") to look for values.
 """
 overrides = {}
 
 def get(key):
     """
-    If key exists in overrides, return
+    If key exists in overrides, return the value.
+
+    Otherwise, return None
     """
     global overrides
 
@@ -15,6 +19,9 @@ def get(key):
     return None
 
 def set(new_overrides):
+    """
+    Set the entire override structure hash.
+    """
     global overrides
 
     overrides = new_overrides
