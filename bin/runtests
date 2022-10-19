@@ -155,7 +155,6 @@ class ArgumentParser(object):
         sys.exit(1)
 
     def set_override(self, arg):
-        # self.overrides.append(arg)
         (key,value) = arg.split("=", 2)
         self.overrides[key] = eval(value)
 
@@ -363,17 +362,6 @@ def get_runtests(parser, logfile):
     """
     Build up runtests object with defined parser settings.
     """
-    if len(parser.paths) == 0:
-        load_modules('./usr/lib/python%d/' % sys.version_info[0])
-        load_modules('./usr/lib/python%d/dist-packages/' % sys.version_info[0])
-        load_modules('/usr/lib/python%d/' % sys.version_info[0])
-        load_modules('/usr/lib/python%d/dist-packages/' % sys.version_info[0])
-    else:
-        for p in parser.paths:
-            load_modules(p)
-            load_modules(p + ('/usr/lib/python%d.%d/' % sys.version_info[:1]))
-            load_modules(p + ('/usr/lib/python%d.%d/dist-packages/' % sys.version_info[:1]))
-
     runtests = importlib.import_module("runtests")
 
     if parser.client_ip != None:
@@ -389,7 +377,18 @@ def get_runtests(parser, logfile):
     runtests.remote_control.interface_external = int(parser.external_intf_id)
 
     runtests.quick_tests_only = parser.quick_tests_only
-    runtests.overrides.overrides = parser.overrides
+    runtests.overrides.set(parser.overrides)
+
+    if len(parser.paths) == 0:
+        load_modules('./usr/lib/python%d/' % sys.version_info[0])
+        load_modules('./usr/lib/python%d/dist-packages/' % sys.version_info[0])
+        load_modules('/usr/lib/python%d/' % sys.version_info[0])
+        load_modules('/usr/lib/python%d/dist-packages/' % sys.version_info[0])
+    else:
+        for p in parser.paths:
+            load_modules(p)
+            load_modules(p + ('/usr/lib/python%d.%d/' % sys.version_info[:1]))
+            load_modules(p + ('/usr/lib/python%d.%d/dist-packages/' % sys.version_info[:1]))
 
     return runtests
 
