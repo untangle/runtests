@@ -13,3 +13,8 @@ def get(key):
         return overrides[key]
 
     return None
+
+def set(new_overrides):
+    global overrides
+
+    overrides = new_overrides
