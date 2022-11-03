@@ -1,4 +1,8 @@
-"""x"""
+try:
+  from .version import __version__
+except:
+  __version__ = "undefined"
+
 import runtests.remote_control
 import runtests.test_registry
 import runtests.overrides
