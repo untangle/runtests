@@ -1,6 +1,6 @@
 #!/bin/bash
 ##
-## Compile sync-settings and install if no errors.
+## Copy files to target
 ##
 TARGET=$1
 
