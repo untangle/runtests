@@ -349,11 +349,26 @@ def load_modules(path):
     if not os.path.isdir(testsdir):
         return
     print("Loading tests from " + path)
+
+    # Import py first...
+    imported = []
     for i in os.listdir(testsdir):
         (name, ext) = os.path.splitext(i)
         if not ext in ['.py']:
             continue
         if name.startswith('__'):
+            continue
+        imported.append(name)
+        print("Loading: " + path + i)
+        importlib.import_module("tests."+name)
+    ## pyc if not already loaded...
+    for i in os.listdir(testsdir):
+        (name, ext) = os.path.splitext(i)
+        if not ext in ['.pyc']:
+            continue
+        if name.startswith('__'):
+            continue
+        if name in imported:
             continue
         print("Loading: " + path + i)
         importlib.import_module("tests."+name)
@@ -379,16 +394,20 @@ def get_runtests(parser, logfile):
     runtests.quick_tests_only = parser.quick_tests_only
     runtests.overrides.set(parser.overrides)
 
-    if len(parser.paths) == 0:
-        load_modules('./usr/lib/python%d/' % sys.version_info[0])
-        load_modules('./usr/lib/python%d/dist-packages/' % sys.version_info[0])
-        load_modules('/usr/lib/python%d/' % sys.version_info[0])
-        load_modules('/usr/lib/python%d/dist-packages/' % sys.version_info[0])
-    else:
-        for p in parser.paths:
-            load_modules(p)
-            load_modules(p + ('/usr/lib/python%d.%d/' % sys.version_info[:1]))
-            load_modules(p + ('/usr/lib/python%d.%d/dist-packages/' % sys.version_info[:1]))
+    search_paths = [ 'dist-packages', 'site-packages']
+    prefix_paths = ["./usr/lib/", "/usr/lib/"]
+
+    if len(parser.paths) > 0:
+        new_prefix_paths = []
+        for path in parser.paths:
+            new_prefix_paths.append(path)
+            new_prefix_paths.append(f"{path}/usr/lib")
+        prefix_paths = new_prefix_paths
+
+    for prefix_path in prefix_paths:
+        for search_path in search_paths:
+            load_modules(f"{prefix_path}/python{sys.version_info.major}/{search_path}/")
+            load_modules(f"{prefix_path}/python{sys.version_info.major}.{sys.version_info.minor}/{search_path}/")
 
     return runtests
 
