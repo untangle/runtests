@@ -372,6 +372,7 @@ def load_modules(path):
             continue
         print("Loading: " + path + i)
         importlib.import_module("tests."+name)
+    print(flush=True)
 
 def get_runtests(parser, logfile):
     """
