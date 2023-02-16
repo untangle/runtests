@@ -15,6 +15,8 @@ import unittest
 import importlib
 import datetime
 
+import runtests.overrides as overrides
+
 class ArgumentParser(object):
     """Command line argument parser"""
     def __init__(self):
@@ -155,8 +157,16 @@ class ArgumentParser(object):
         sys.exit(1)
 
     def set_override(self, arg):
-        (key,value) = arg.split("=", 2)
-        self.overrides[key] = eval(value)
+        if "=" in arg:
+            (key,value) = arg.split("=", 2)
+            overrides.set(key, eval(value))
+        else:
+            # Assume file
+            if os.path.isfile(arg):
+                overrides.set_from_file(arg)
+            else:
+                print(f"Cannot find override file: {arg}")
+                myexit(1)
 
     def parse_args(self):
         handlers = {
@@ -311,6 +321,7 @@ def run_test_suite(suite):
             suite_skip_count += 1
         else:
             print("Test success : %s %s " % (test_name, time_string))
+        sys.stdout.flush()
 
     run_final_tear_down(suite)
 
@@ -393,7 +404,6 @@ def get_runtests(parser, logfile):
     runtests.remote_control.interface_external = int(parser.external_intf_id)
 
     runtests.quick_tests_only = parser.quick_tests_only
-    runtests.overrides.set(parser.overrides)
 
     search_paths = [ 'dist-packages', 'site-packages']
     prefix_paths = ["./usr/lib/", "/usr/lib/"]
