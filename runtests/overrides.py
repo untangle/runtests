@@ -1,3 +1,4 @@
+import json
 """
 Provide a key/value means of speciying values.
 
@@ -5,23 +6,36 @@ Other modules must use override.get("key") to look for values.
 """
 overrides = {}
 
-def get(key):
+def get(key, default=None):
     """
     If key exists in overrides, return the value.
 
-    Otherwise, return None
+    Otherwise, return defalt
     """
     global overrides
 
     if key in overrides:
         return overrides[key]
 
-    return None
+    return default
 
-def set(new_overrides):
+def set(key, value):
     """
-    Set the entire override structure hash.
+    Set overrides key to the value
     """
     global overrides
 
-    overrides = new_overrides
+    overrides[key] = value
+
+def set_from_file(file_name):
+    """
+    Set overrides to the contents of the file.
+    """
+    global overrides
+
+    data = {}
+    with open(file_name, "r") as file:
+        data = json.loads(file.read())
+        file.close()
+
+    overrides = data
