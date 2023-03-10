@@ -453,20 +453,51 @@ total_count = 0
 fail_count = 0
 skip_count = 0
 
+# Collect suite run orders
+# Default ordering is:
+# 1 - First (e.g.,environment if that were not already special cased)
+# 2 - Everything
+# 3 - Special cases
+#     (Like performance which clobbers uvmContext in a way
+#      that is not easily recoverable without a major refactor)
+run_orders = [2]
+for module in parser.suites_to_run:
+    clz = runtests.test_registry.get_test(module)
+    try:
+        run_order = clz.run_order
+    except Exception:
+        run_order = 2
+        pass
+    if run_order not in run_orders:
+        run_orders.append(run_order)
+
+run_orders = sorted(run_orders)
+
 while True:
-    for module in parser.suites_to_run:
+    for run_order in run_orders:
         if exit_flag is True:
             break
-        if module == "environment":
-            continue
-        test_clz = runtests.test_registry.get_test(module)
-        if test_clz is None:
-            print("Unable to find tests for \"%s\"" % module)
-            myexit(1)
-        sub_fail_count, sub_skip_count, sub_total_count = run_test_suite(test_clz)
-        fail_count += sub_fail_count
-        total_count += sub_total_count
-        skip_count += sub_skip_count
+        for module in parser.suites_to_run:
+            if exit_flag is True:
+                break
+            test_clz = runtests.test_registry.get_test(module)
+
+            try:
+                clz_run_order = test_clz.run_order
+            except Exception:
+                clz_run_order = 2
+                pass
+
+            if clz_run_order != run_order:
+                continue
+
+            if test_clz is None:
+                print("Unable to find tests for \"%s\"" % module)
+                myexit(1)
+            sub_fail_count, sub_skip_count, sub_total_count = run_test_suite(test_clz)
+            fail_count += sub_fail_count
+            total_count += sub_total_count
+            skip_count += sub_skip_count
 
     if exit_flag is True:
         break
