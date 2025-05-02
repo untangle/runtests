@@ -1,1 +1,1 @@
-__version__ = "unknown"
+__version__ = "1.0.0"
