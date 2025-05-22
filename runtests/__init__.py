@@ -1,7 +1,7 @@
 try:
   from .version import __version__
 except:
-  __version__ = "1.0.0"
+  __version__ = "undefined"
 
 import runtests.remote_control
 import runtests.test_registry

@@ -19,7 +19,7 @@ if isdir("../.git") or isdir(".git"): # debian source tarballs don't contain .gi
     with open('runtests/version.py', 'w') as f:
         f.write('__version__ = "{}"\n'.format(version))
 else:
-    version = "1.0.0"
+    version = "undefined"
 
 setup(name='runtests',
       version=version,
