@@ -15,6 +15,14 @@ if isdir("../.git") or isdir(".git"): # debian source tarballs don't contain .gi
     items = version[1:].split('-')
     if len(items) == 3:
         version = '{}+{}'.format(items[0], items[2][1:])
+    elif len(items) > 3:
+        # handle tags like ngfw-17.4.1-20260129T0127-sync-0-gabcdef
+        # extract base version (first N.N.N pattern) and git hash
+        import re
+        m = re.search(r'(\d+\.\d+\.\d+)', version)
+        base = m.group(1) if m else '0.0.0'
+        commit = items[-1][1:] if items[-1].startswith('g') else items[-1]
+        version = '{}+{}'.format(base, commit)
     print("--> PEP-0440 version will be {}".format(version))
     with open('runtests/version.py', 'w') as f:
         f.write('__version__ = "{}"\n'.format(version))
